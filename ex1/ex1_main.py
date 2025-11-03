@@ -11,7 +11,7 @@ from my_models import ViT, \
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a neural network to classify CIFAR10')
-    parser.add_argument('--model', type=str, default='cvit',
+    parser.add_argument('--model', type=str, default='r18',
                         help='model to train (default: r18)')  # replace here the model to be used
     parser.add_argument('--batch-size', type=int, default=64, help='input batch size for training (default: 64)')
     parser.add_argument('--epochs', type=int, default=5, help='number of epochs to train (default: 5)')
@@ -81,8 +81,9 @@ def run(args):
                                              transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
                                              ])
 
+    # TODO: adjust folder - done
     # create index split to split training and validation set
-    full_no_tf = datasets.CIFAR10('/home/lucy-britting/Desktop/AdvancedDeepLearning/Exercise1/cifar10/train',
+    full_no_tf = datasets.CIFAR10('cifar10/train',
                                   train=True, download=True)  # no transform!
     n_train = int(0.9 * len(full_no_tf))
     n_val = len(full_no_tf) - n_train
@@ -90,27 +91,31 @@ def run(args):
     train_idx, val_idx = random_split(full_no_tf, [n_train, n_val], generator=gen)
 
     # build two separate datasets with different transforms
-    train_base = datasets.CIFAR10('/home/lucy-britting/Desktop/AdvancedDeepLearning/Exercise1/cifar10/train',
-                                  train=True, download=True, transform=transform_train)
-    val_base = datasets.CIFAR10('/home/lucy-britting/Desktop/AdvancedDeepLearning/Exercise1/cifar10/val', train=True,
-                                download=True, transform=transform_val_test)
+    train_base = datasets.CIFAR10('cifar10/train',
+                                  train=True,
+                                  download=True,
+                                  transform=transform_train
+                                  )
+    val_base = datasets.CIFAR10('cifar10/val',
+                                train=True,
+                                download=True,
+                                transform=transform_val_test
+                                )
 
     # wrap them with the same indices
     trainset = Subset(train_base, train_idx.indices)
     valset = Subset(val_base, val_idx.indices)
 
-    # TODO: adjust folder - done
-    """
-    dataset = datasets.CIFAR10('/home/lucy-britting/Desktop/AdvancedDeepLearning/Exercise1/cifar10/train', download=True, train=True, transform=transform_train)
-    trainset, valset = torch.utils.data.random_split(dataset, [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)])
-    """
     trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
     valloader = DataLoader(valset, batch_size=64, shuffle=False)
 
     # Download and load the test data
     # TODO: adjust folder - done
-    testset = datasets.CIFAR10('/home/lucy-britting/Desktop/AdvancedDeepLearning/Exercise1/cifar10/test', download=True,
-                               train=False, transform=transform_val_test)
+    testset = datasets.CIFAR10('cifar10/test',
+                               download=True,
+                               train=False,
+                               transform=transform_val_test
+                               )
     testloader = DataLoader(testset, batch_size=64, shuffle=True)
 
     # Build a feed-forward network
